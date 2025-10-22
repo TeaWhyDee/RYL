@@ -1,0 +1,23 @@
+swagger: "3.0"
+openapi: 3.0.4
+
+info:
+  title: RYL API
+  description: api description
+  version: 0.0.1
+  uiversion: 3
+# externalDocs:
+#   url: https://teawide.xyz
+# servers:
+#   - url: https://
+
+components:
+  securitySchemes:
+    cookieAuth: # arbitrary name
+      type: apiKey
+      in: cookie
+      name: jwt_token
+
+# 2) Apply cookie auth globally to all operations
+# security:
+#   - cookieAuth: []
