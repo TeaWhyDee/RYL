@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creator Page</title>
+</head>
+<body>
+
+<a href="/login">login</a> |
+<a href="/levels">levels</a> |
+<a href="/layouts">layouts</a> |
+<a href="/add">add level or creator</a>
+<br><br>
+
+<h2>Creator Page</h2>
+<div id="creatorInfo"></div>
+
+<h2>Levels</h2>
+<div id="levelsList"></div>
+
+<h2>Layouts</h2>
+<div id="layoutsList"></div>
+
+
+<h2>Credits</h2>
+<div id="creditsList"></div>
+
+
+
+
+
+<script>
+const creditsList = document.getElementById('creditsList');
+
+const creatorInfo = document.getElementById('creatorInfo');
+const levelsList = document.getElementById('levelsList');
+const layoutsList = document.getElementById('layoutsList');
+
+// const urlParams = new URLSearchParams(window.location.search);
+// const creatorUrlName = urlParams.get('creator_url_name');
+const creatorUrlName = window.location.pathname.split('/').pop();
+creatorInfo.innerHTML = creatorUrlName
+
+creatorId = 1;
+
+const fetchCreatorId = async () => {
+    const response = await fetch(`/v1/creator_by_url/${creatorUrlName}`);
+    const creatorData = await response.json();
+    
+    creatorInfo.innerHTML = `<p><strong>Name: ${creatorData.name}</strong></p>`;
+    
+    creatorId = creatorData.id;
+    
+    fetchAndDisplayData('level', levelsList, `Levels`, creatorId);
+    fetchAndDisplayData('layout', layoutsList, `Layouts`, creatorId);
+    fetchAndDisplayCredits(creatorId);
+}
+
+
+const fetchAndDisplayCredits = async () => {
+    const creditsResponse = await fetch(`/v1/level_credits?creator_id=${creatorId}`);
+    const data = await creditsResponse.json();
+    
+    creditsList.innerHTML = ``;
+
+    data.credits.forEach(credit => {
+        const creditInfo = `<strong>${credit.creator.name}</strong> : ${credit.creator_role}`;
+        creditsList.innerHTML += `<p>${creditInfo}</p>`;
+    });
+}
+
+
+const fetchAndDisplayData = async (endpoint, container, title, creatorId) => {
+    const response = await fetch(`/v1/levels?page=1&level_type=${endpoint}&creator_id=${creatorId}&per_page=20`);
+    const data = await response.json();
+    
+    // container.innerHTML = `<p><strong>${title}</strong></p>`;
+    
+    data.levels.forEach(item => {
+        const itemUrl = `/level/${item.name}`;
+        container.innerHTML += `<p><a href="${itemUrl}">${item.name}</a></p>`;
+    });
+}
+
+// Fetch creator data when the page loads
+fetchCreatorId();
+</script>
+
+</body>
+</html>

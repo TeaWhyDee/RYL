@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Levels Page</title>
+</head>
+<body>
+
+
+<a href="/login">login</a> |
+<a href="/levels">levels</a> |
+<a href="/layouts">layouts</a> |
+<a href="/add">add level or creator</a>
+<br><br>
+
+
+<h2>Levels</h2>
+
+<div id="levelsList"></div>
+<button id="prevPageBtn" disabled>Previous Page</button>
+<button id="nextPageBtn" disabled>Next Page</button>
+<div id="div"></div>
+
+<script>
+const levelsList = document.getElementById('levelsList');
+const prevPageBtn = document.getElementById('prevPageBtn');
+const nextPageBtn = document.getElementById('nextPageBtn');
+const div = document.getElementById('div');
+
+let currentPage = new URLSearchParams(window.location.search).get('page') || 1;
+
+
+const fetchLevels = async (page) => {
+    const response = await fetch(`/v1/levels?page=${page}&level_type=level&per_page=20`);
+    const data = await response.json();
+    
+    // levelsList.innerHTML = "asdasdasd"; // Clear previous levels
+    levelsList.innerHTML = ""; // Clear previous levels
+    
+    div.innerHTML = JSON.stringify(data, null, 2)
+
+    data.levels.forEach(level => {
+        const levelElement = document.createElement('div');
+        
+        const levelUrl = level.url
+        // const creatorUrl = creator.url
+
+        levelElement.innerHTML = `
+            <p><strong>Level:
+                <a href="${levelUrl}">${level.url}</a>
+                by <a href="${creatorUrl}">${level.creator.display_name}</a></strong></p>
+        `;
+        
+        // level.credits.forEach(credit => {
+        //     levelElement.innerHTML += `<p>${credit.creator.name}: ${credit.creator_role}</p>`;
+        // });
+
+        // levelElement.innerHTML += `<br>`;
+        
+        levelsList.appendChild(levelElement);
+    });
+    
+    // Enable/disable pagination buttons based on current page
+    prevPageBtn.disabled = !data.pagination.prev;
+    nextPageBtn.disabled = !data.pagination.next;
+};
+
+prevPageBtn.addEventListener('click', () => {
+    currentPage--;
+    window.location.href = `/levels?page=${currentPage}`;
+    // fetchLevels(currentPage);
+});
+
+nextPageBtn.addEventListener('click', () => {
+    currentPage++;
+    window.location.href = `/levels?page=${currentPage}`;
+    // fetchLevels(currentPage);
+});
+
+// Initial fetch for the first page
+fetchLevels(currentPage);
+</script>
+
+</body>
+</html>

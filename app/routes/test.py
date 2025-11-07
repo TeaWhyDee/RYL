@@ -1,7 +1,15 @@
-from flask import Blueprint
+from apiflask import APIBlueprint, abort
+from flask import current_app
+from flask.views import MethodView
 
-routes_test = Blueprint('test', __name__)
+# from app.utility.auth import auth
+from app.db.database import db
+from app.utility.auth import auth
 
-@routes_test.route('/ping')
+app_test = APIBlueprint("test", __name__)
+
+
+@app_test.route("/ping")
+@app_test.doc(summary='Say pong', description='Some description')
 def ping():
-    return 'pong'
+    return "pong"

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Level Page</title>
+</head>
+<body>
+
+
+<a href="/login">login</a> |
+<a href="/levels">levels</a> |
+<a href="/layouts">layouts</a> |
+<a href="/add">add level or creator</a>
+<br><br>
+
+
+<h2>Level Information</h2>
+<div id="levelInfo"></div>
+
+<h2>Credits</h2>
+<div id="creditsList"></div>
+
+
+<br>
+<br>
+
+
+
+<h2>Add Credit</h2>
+
+<form id="addCreditForm">
+    <label for="creator_id">Creator ID:</label><br>
+    <input type="number" id="creator_id" name="creator_id"><br>
+    
+    <label for="creator_role">Creator Role:</label><br>
+    <select id="creator_role" name="creator_role">
+        <option value="host">Host</option>
+        <option value="coauthor">Coauthor</option>
+        <option value="gameplay">Gameplay</option>
+        <option value="decoration">Decoration</option>
+        <option value="fx">FX</option>
+        <option value="art">Art</option>
+        <option value="background">Background</option>
+        <option value="structuring">Structuring</option>
+        <option value="engineer">Engineer</option>
+        <option value="playtester">Playtester</option>
+        <option value="verifier">Verifier</option>
+    </select><br>
+    
+    <input type="hidden" id="level_id" name="level_id" value="<level_id_here>">
+    
+    <button type="submit">Add Credit</button>
+</form>
+
+<br>
+
+<h3>All Creators List</h3>
+<div id="creatorsList"></div>
+
+
+
+
+
+<script>
+const creatorsList = document.getElementById('creatorsList');
+id = 0;
+
+const levelInfo = document.getElementById('levelInfo');
+const creditsList = document.getElementById('creditsList');
+
+const urlParams = new URLSearchParams(window.location.search);
+const levelUrlName = window.location.pathname.split('/').pop();
+
+const fetchLevelId = async () => {
+    const response = await fetch(`/v1/level_by_url/${levelUrlName}`);
+    const levelData = await response.json();
+    
+    levelInfo.innerHTML = `<p><strong>Name: ${levelData.name}</strong></p>`;
+    levelInfo.innerHTML += `<p><strong>GD Publisher: ${levelData.GD_publisher}</strong></p>`;
+    levelInfo.innerHTML += `<p><strong>id: ${levelData.id}</strong></p>`;
+    levelInfo.innerHTML += `<p><strong>type: ${levelData.level_type}</strong></p>`;
+    levelInfo.innerHTML += `<p><strong>length: ${levelData.length}</strong></p>`;
+    levelInfo.innerHTML += `<p><strong>rating: ${levelData.rating}</strong></p>`;
+
+    id = levelData.id;
+    
+    const levelId = levelData.id;
+    
+    fetchAndDisplayCredits(levelId);
+}
+
+const fetchAndDisplayCredits = async (levelId) => {
+    const response = await fetch(`/v1/level_credits?page=1&level_id=${levelId}&per_page=20`);
+    const data = await response.json();
+    
+    creditsList.innerHTML = ``;
+
+    data.credits.forEach(credit => {
+        const creditInfo = `<strong>${credit.creator.name}</strong> : ${credit.creator_role}`;
+        creditsList.innerHTML += `<p>${creditInfo}</p>`;
+    });
+}
+
+// Fetch level data when the page loads
+fetchLevelId();
+
+
+//
+// ADD CDERIT
+//
+document.getElementById('addCreditForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(this);
+    const creditData = {
+        creator_id: formData.get('creator_id'),
+        creator_role: formData.get('creator_role'),
+        level_id: id
+    };
+    
+    const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)access_token\s*=\s*([^;]*).*$)|^.*$/, "$1");
+    
+    try {
+        const response = await fetch('/v1/level_credits', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(creditData)
+        });
+        
+        if (response.ok) {
+            alert('Credit added successfully!');
+            // Reload the page after adding the credit
+            location.reload();
+        } else {
+            alert('Failed to add credit. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    }
+});
+
+
+const fetchCreators = async (page) => {
+    const response = await fetch(`/v1/creators?page=${page}&per_page=100`);
+    const data = await response.json();
+    
+    // creatorsList.innerHTML = "asdasdasd"; // Clear previous creators
+    creatorsList.innerHTML = ""; // Clear previous creators
+    
+    data.creators.forEach(creator => {
+        const creatorElement = document.createElement('div');
+        
+        creatorElement.innerHTML = `
+            <p>${creator.id} : ${creator.name} </p>
+        `;
+        
+        creatorsList.appendChild(creatorElement);
+    });
+};
+
+fetchCreators(1);
+</script>
+
+</body>
+</html>

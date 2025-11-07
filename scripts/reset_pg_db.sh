@@ -1,0 +1,6 @@
+DROP DATABASE ryl_dev;
+
+CREATE DATABASE ryl_dev;
+GRANT ALL PRIVILEGES ON DATABASE ryl_dev TO ryl_dev;
+ALTER DATABASE ryl_dev OWNER to ryl_dev;
+

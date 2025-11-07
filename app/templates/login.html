@@ -1,21 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Page</title>
 </head>
 <body>
-    <h2>Login</h2>
-    <form action="/auth/login" method="POST">
-        <label>Email:</label>
-        <input type="email" name="email" required>
-        <br>
-        <label>Password:</label>
-        <input type="password" name="password" required>
-        <br>
-        <button type="submit">Login</button>
-    </form>
-    <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+
+<h2>Login</h2>
+<form id="loginForm">
+    <label for="username">Username:</label><br>
+    <input type="text" id="username" name="username"><br>
+    <label for="password">Password:</label><br>
+    <input type="password" id="password" name="password"><br><br>
+    <button type="submit">Login</button>
+</form>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(this);
+    const userData = {
+        username: formData.get('username'),
+        password: formData.get('password')
+    };
+
+    try {
+        const response = await fetch('/v1/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            // Save the access token to cookies
+            document.cookie = `access_token=${data.access_token}; expires=Wed, 1 Jan 2026 12:00:00 UTC; path=/`;
+
+            window.location.href = '/levels';
+            // alert('Login successful! Access token saved to cookies.');
+        } else {
+            alert('Login failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+</script>
+
 </body>
 </html>

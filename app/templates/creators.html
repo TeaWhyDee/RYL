@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creators Page</title>
+</head>
+<body>
+
+
+<a href="/login">login</a> |
+<a href="/levels">levels</a> |
+<a href="/layouts">layouts</a> |
+<a href="/add">add level or creator</a>
+<br><br>
+
+
+<h2>Creators</h2>
+
+<div id="creatorsList"></div>
+<button id="prevPageBtn" disabled>Previous Page</button>
+<button id="nextPageBtn" disabled>Next Page</button>
+
+<script>
+const creatorsList = document.getElementById('creatorsList');
+const prevPageBtn = document.getElementById('prevPageBtn');
+const nextPageBtn = document.getElementById('nextPageBtn');
+
+let currentPage = new URLSearchParams(window.location.search).get('page') || 1;
+
+
+const fetchCreators = async (page) => {
+    const response = await fetch(`/v1/creators?page=${page}&per_page=100`);
+    const data = await response.json();
+    
+    // creatorsList.innerHTML = "asdasdasd"; // Clear previous creators
+    creatorsList.innerHTML = ""; // Clear previous creators
+    
+    data.creators.forEach(creator => {
+        const creatorElement = document.createElement('div');
+        
+        creatorElement.innerHTML = `
+            <p><strong>${creator.name}: ${creator.id}</p>
+        `;
+        
+        creatorsList.appendChild(creatorElement);
+    });
+    
+    // Enable/disable pagination buttons based on current page
+    prevPageBtn.disabled = !data.pagination.prev;
+    nextPageBtn.disabled = !data.pagination.next;
+};
+
+prevPageBtn.addEventListener('click', () => {
+    currentPage--;
+    window.location.href = `/creators?page=${currentPage}`;
+    // fetchCreators(currentPage);
+});
+
+nextPageBtn.addEventListener('click', () => {
+    currentPage++;
+    window.location.href = `/creators?page=${currentPage}`;
+    // fetchCreators(currentPage);
+});
+
+// Initial fetch for the first page
+fetchCreators(currentPage);
+</script>
+
+</body>
+</html>

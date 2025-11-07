@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>layouts Page</title>
+</head>
+<body>
+
+
+<a href="/login">login</a> |
+<a href="/levels">levels</a> |
+<a href="/layouts">layouts</a> |
+<a href="/add">add level or creator</a>
+<br><br>
+
+
+<h2>layouts</h2>
+
+<div id="layoutsList"></div>
+<button id="prevPageBtn" disabled>Previous Page</button>
+<button id="nextPageBtn" disabled>Next Page</button>
+
+<script>
+const layoutsList = document.getElementById('layoutsList');
+const prevPageBtn = document.getElementById('prevPageBtn');
+const nextPageBtn = document.getElementById('nextPageBtn');
+
+let currentPage = new URLSearchParams(window.location.search).get('page') || 1;
+
+
+const fetchlayouts = async (page) => {
+    const response = await fetch(`/v1/levels?page=${page}&level_type=layout&per_page=20`);
+    const data = await response.json();
+    
+    // layoutsList.innerHTML = "asdasdasd"; // Clear previous layouts
+    layoutsList.innerHTML = ""; // Clear previous layouts
+    
+    data.levels.forEach(level => {
+        const levelElement = document.createElement('div');
+        
+        const creatorUrl = `/creator/${level.creator.url_name}`;
+        const levelUrl = `/level/${level.url_name}`;
+
+        levelElement.innerHTML = `
+            <p><strong>Level: <a href="${levelUrl}">${level.name}</a> by <a href="${creatorUrl}">${level.creator.display_name}</a></strong></p>
+        `;
+        
+        // level.credits.forEach(credit => {
+        //     levelElement.innerHTML += `<p>${credit.creator.name}: ${credit.creator_role}</p>`;
+        // });
+
+        // levelElement.innerHTML += `<br>`;
+        
+        layoutsList.appendChild(levelElement);
+    });
+    
+    // Enable/disable pagination buttons based on current page
+    prevPageBtn.disabled = !data.pagination.prev;
+    nextPageBtn.disabled = !data.pagination.next;
+};
+
+prevPageBtn.addEventListener('click', () => {
+    currentPage--;
+    window.location.href = `/layouts?page=${currentPage}`;
+    // fetchlayouts(currentPage);
+});
+
+nextPageBtn.addEventListener('click', () => {
+    currentPage++;
+    window.location.href = `/layouts?page=${currentPage}`;
+    // fetchlayouts(currentPage);
+});
+
+// Initial fetch for the first page
+fetchlayouts(currentPage);
+</script>
+
+</body>
+</html>

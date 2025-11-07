@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Level</title>
+</head>
+<body>
+
+
+<a href="/login">login</a> |
+<a href="/levels">levels</a> |
+<a href="/layouts">layouts</a> |
+<a href="/add">add level or creator</a>
+
+
+<h2>Add Level</h2>
+
+<form id="addLevelForm">
+    <label for="GD_id">GD ID:</label><br>
+    <input type="number" id="GD_id" name="GD_id"><br>
+    
+    <label for="GD_publisher">GD Publisher:</label><br>
+    <input type="text" id="GD_publisher" name="GD_publisher"><br>
+    
+    <label for="creator_id">Creator ID:</label><br>
+    <input type="text" id="creator_id" name="creator_id"><br>
+    
+    <label for="level_length">Level Length:</label><br>
+    <select id="level_length" name="level_length">
+        <option value="tiny">Tiny</option>
+        <option value="short">Short</option>
+        <option value="medium">Medium</option>
+        <option value="long">Long</option>
+        <option value="XL">XL</option>
+        <option value="XXL">XXL</option>
+    </select><br>
+    
+    <label for="level_rating">Level Rating:</label><br>
+    <select id="level_rating" name="level_rating">
+        <option value="unrated">Unrated</option>
+        <option value="rated">Rated</option>
+        <option value="featured">Featured</option>
+        <option value="epic">Epic</option>
+        <option value="mythic">Mythic</option>
+    </select><br>
+    
+    <label for="level_type">Level Type:</label><br>
+    <select id="level_type" name="level_type">
+        <option value="level">Level</option>
+        <option value="layout">Layout</option>
+        <option value="challenge">Challenge</option>
+        <option value="minigame">Minigame</option>
+    </select><br>
+    
+    <label for="name">Name:</label><br>
+    <input type="text" id="name" name="name"><br>
+    
+    <button type="submit">Add Level</button>
+</form>
+
+<br>
+
+<h2>Add Creator</h2>
+
+<form id="addCreatorForm">
+    <label for="creatorName">Creator Name:</label><br>
+    <input type="text" id="creatorName" name="name"><br>
+    <button type="submit">Add Creator</button>
+</form>
+
+<br>
+
+<h3>All Creators List</h3>
+<div id="creatorsList"></div>
+
+
+
+<script>
+const creatorsList = document.getElementById('creatorsList');
+
+//
+// ===== ADD LEVEL =====
+//
+document.getElementById('addLevelForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(this);
+    const levelData = {
+        GD_id: formData.get('GD_id'),
+        GD_publisher: formData.get('GD_publisher'),
+        creator_id: formData.get('creator_id'),
+        length: formData.get('level_length'),
+        rating: formData.get('level_rating'),
+        level_type: formData.get('level_type'),
+        name: formData.get('name')
+    };
+    
+    const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)access_token\s*=\s*([^;]*).*$)|^.*$/, "$1");
+
+    const response = await fetch(`/v1/creators`);
+    const creatorData = await response.json();
+
+    
+    try {
+        const response = await fetch('/v1/levels', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(levelData)
+        });
+        
+        if (response.ok) {
+            alert('Level added successfully!');
+            // Optionally redirect to another page
+        } else {
+            alert('Failed to add level. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    }
+});
+
+
+//
+// ===== ADD CREATOR =====
+//
+document.getElementById('addCreatorForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(this);
+    const creatorData = {
+        name: formData.get('name')
+    };
+    
+    const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)access_token\s*=\s*([^;]*).*$)|^.*$/, "$1");
+    
+    try {
+        const response = await fetch('/v1/creators', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(creatorData)
+        });
+        
+        if (response.ok) {
+            location.reload();
+            // alert('Creator added successfully!');
+            // Optionally redirect to another page
+        } else {
+            alert('Failed to add creator. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    }
+});
+
+
+const fetchCreators = async (page) => {
+    const response = await fetch(`/v1/creators?page=${page}&per_page=100`);
+    const data = await response.json();
+    
+    // creatorsList.innerHTML = "asdasdasd"; // Clear previous creators
+    creatorsList.innerHTML = ""; // Clear previous creators
+    
+    data.creators.forEach(creator => {
+        const creatorElement = document.createElement('div');
+        
+        creatorElement.innerHTML = `
+            <p>${creator.id} : ${creator.name} </p>
+        `;
+        
+        creatorsList.appendChild(creatorElement);
+    });
+};
+
+fetchCreators(1);
+</script>
+
+</body>
+</html>
