@@ -1,3 +1,9 @@
+RYL - RateYourLevel is a forum-like GD level review site, 
+akin RateYourMusic.
+It allows users to browse, search, rate and review Geometry Dash levels.
+This is the backend service.
+
+
 # Documentation
 Migrations:
 https://flask-migrate.readthedocs.io/en/latest/index.html
