@@ -1,26 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Levels Page</title>
-</head>
+{% extends 'ryl_base.html' %}
+
 <body>
 
 
-<a href="/login">login</a> |
-<a href="/levels">levels</a> |
-<a href="/layouts">layouts</a> |
-<a href="/add">add level or creator</a>
-<br><br>
-
-
+{% block content %}
 <h2>Levels</h2>
+
+{{ fuser }}
 
 <div id="levelsList"></div>
 <button id="prevPageBtn" disabled>Previous Page</button>
 <button id="nextPageBtn" disabled>Next Page</button>
 <div id="div"></div>
+
 
 <script>
 const levelsList = document.getElementById('levelsList');
@@ -29,13 +21,24 @@ const nextPageBtn = document.getElementById('nextPageBtn');
 const div = document.getElementById('div');
 
 let currentPage = new URLSearchParams(window.location.search).get('page') || 1;
+const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)access_token\s*=\s*([^;]*).*$)|^.*$/, "$1");
+if (accessToken) {
+    headers = {
+        'Authorization': `Bearer ${accessToken}`
+    }
+}
+else {
+    headers = {}
+}
 
 
 const fetchLevels = async (page) => {
-    const response = await fetch(`/v1/levels?page=${page}&level_type=level&per_page=20`);
+    const response = await fetch(`/v1/levels?page=${page}&level_type=level&per_page=20`, {
+            method: 'GET',
+            headers: headers
+    });
     const data = await response.json();
     
-    // levelsList.innerHTML = "asdasdasd"; // Clear previous levels
     levelsList.innerHTML = ""; // Clear previous levels
     
     div.innerHTML = JSON.stringify(data, null, 2)
@@ -44,23 +47,22 @@ const fetchLevels = async (page) => {
         const levelElement = document.createElement('div');
         
         const levelUrl = level.url
-        // const creatorUrl = creator.url
+        const creator = level.author_creators[0].creator
+        const creatorUrl = creator.url
+        const creatorName = creator.display_name
 
         levelElement.innerHTML = `
             <p><strong>Level:
-                <a href="${levelUrl}">${level.url}</a>
-                by <a href="${creatorUrl}">${level.creator.display_name}</a></strong></p>
+                <a href="${levelUrl}">${level.display_name}</a>
+                by <a href="${creatorUrl}">${creatorName}</a></strong></p>
         `;
         
-        // level.credits.forEach(credit => {
-        //     levelElement.innerHTML += `<p>${credit.creator.name}: ${credit.creator_role}</p>`;
-        // });
 
-        // levelElement.innerHTML += `<br>`;
-        
         levelsList.appendChild(levelElement);
     });
     
+    pagination = data.pagination
+
     // Enable/disable pagination buttons based on current page
     prevPageBtn.disabled = !data.pagination.prev;
     nextPageBtn.disabled = !data.pagination.next;
@@ -81,6 +83,4 @@ nextPageBtn.addEventListener('click', () => {
 // Initial fetch for the first page
 fetchLevels(currentPage);
 </script>
-
-</body>
-</html>
+{% endblock %}

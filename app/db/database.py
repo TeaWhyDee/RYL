@@ -63,12 +63,12 @@ class Base(_Base):
     )
 
 
-class CompletenessStatus(enum.Enum):
-    imported_GD = 0
-    has_creator = 1
-    imported_extra = 3
-    user_edited = 5
-    mod_approved = 10
+# class CompletenessStatus(enum.Enum):
+#     imported_GD = 0
+#     has_creator = 1
+#     imported_extra = 3
+#     user_edited = 5
+#     mod_approved = 10
 
 
 class ContentBase(Base):

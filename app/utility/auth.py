@@ -1,5 +1,5 @@
 from apiflask import HTTPTokenAuth
-from flask import current_app
+from flask import current_app, g
 from flask_jwt_extended import (
     JWTManager,
     current_user,
@@ -14,7 +14,7 @@ from app.db.models.user import User
 #
 # == APIFlask Auth ==
 #
-auth = HTTPTokenAuth()
+auth = HTTPTokenAuth(scheme="Bearer")
 
 
 @auth.verify_token
@@ -23,28 +23,29 @@ def verify_token(token):
     # - sets necessary variables
     # - verifies the jwt
     # - throws exceptions in case of failed verification
-    verify_jwt_in_request(
-        optional=False,
+    ret = verify_jwt_in_request(
+        optional=True,
         fresh=False,
         refresh=False,
-        locations=None,
+        locations="headers",  # Or JWT_TOKEN_LOCATION
         verify_type=True,
         skip_revocation_check=False,
     )
 
-    # if ret:
-    #     jwt_header, jwt_data = ret
-
-    try:
-        user_identity = get_jwt_identity()
-        # TODO: Can be optimized (avoid making so many calls)
+    user_identity = get_jwt_identity()  # user.id
+    if user_identity:
         # Set current user for SQLA-audit
         set_context_values(db.session, user_id=current_user.id)
-        return user_identity
 
-    except Exception as e:
-        current_app.logger.warning(e)
+        g.user = current_user
+        current_app.logger.warning(current_user)
+        return user_identity
+    else:
         return None
+
+    # except Exception as e:
+    #     current_app.logger.warning(e)
+    #     return None
 
 
 # == Flask JWT Extended ==
@@ -74,7 +75,7 @@ def user_identity_lookup(user):
 def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
 
-    if current_app.config["DEBUG"]:
-        current_app.logger.warning(jwt_data)
+    # if current_app.config["DEBUG"]:
+    #     current_app.logger.warning(jwt_data)
 
     return User.query.filter_by(id=identity).one_or_none()

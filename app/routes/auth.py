@@ -1,8 +1,7 @@
 from apiflask import APIBlueprint, abort
-from flask import current_app, jsonify, make_response, request
-from flask_jwt_extended import create_access_token, current_user, get_jwt_identity
+from flask import jsonify
+from flask_jwt_extended import create_access_token, current_user
 
-from app import routes
 from app.db.database import db
 from app.db.models.user import User
 from app.schemas.user import UserIn, UserLogin, UserOut

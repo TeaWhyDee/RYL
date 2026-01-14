@@ -1,9 +1,15 @@
-from apiflask import APIBlueprint, PaginationSchema, Schema, abort, pagination_builder
+from apiflask import (
+    APIBlueprint,
+    PaginationSchema,
+    Schema,
+    abort,
+    pagination_builder,
+)
 from apiflask.fields import Enum, Integer, List, Nested, String
 from apiflask.validators import Range
 from flask import current_app
 from flask.views import MethodView
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy import select
 
 from app.db.database import db
 from app.db.models.level import Level, LevelType
@@ -31,24 +37,22 @@ class Levels(MethodView):
     @app_level.input(LevelQuery, location="query")
     @app_level.output(LevelsPage)
     @app_level.doc("Search levels (paginated)")
+    @app_level.auth_required(auth, optional="True")
+    # @app_level.auth_required(auth)
     def get(self, query_data):
-        query = Level.query
+        # query = Level.query
+        query = select(Level)
         if "level_type" in query_data:
             level_type = query_data["level_type"]
-            query = query.filter_by(level_type=level_type)
+            query = query.where(Level.level_type == level_type)
 
         if "creator_id" in query_data:
             creator_id = query_data["creator_id"]
             query = query.filter_by(creator_id=creator_id)
 
-        # cte = query.cte()
-        # query = db.session.query(cte).order_by(cte.c.id.desc())
         query = query.order_by(Level.id.desc())
+        pagination = db.paginate(query)
 
-        pagination = query.paginate()
-
-        # schema = LevelOutExtra()
-        # levels = [schema.dump(x) for x in pagination.items]
         levels = pagination.items
         return {"levels": levels, "pagination": pagination_builder(pagination)}
 
@@ -118,8 +122,8 @@ class LevelView(MethodView):
         try:
             level_query.update(json_data)
             db.session.commit()
-        except Exception as E:
-            abort(500)
+        except Exception as e:
+            abort(500, f"{e}")
 
         return level
 

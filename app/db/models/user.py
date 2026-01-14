@@ -1,12 +1,11 @@
 import enum
 import uuid
-from dataclasses import dataclass
 
-from sqlalchemy import Boolean, Enum, ForeignKey, Integer, Sequence, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Boolean, Enum, String
+from sqlalchemy.orm import Mapped, mapped_column
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.db.database import Base, db
+from app.db.database import Base
 
 
 class UserType(enum.Enum):
@@ -19,13 +18,18 @@ class UserType(enum.Enum):
 class User(Base):
     __tablename__ = "users"
 
-    password: Mapped[str] = mapped_column(String(200))
+    password: Mapped[str] = mapped_column(String(200), nullable=False)
 
-    public_id: Mapped[str] = mapped_column(String(50), unique=True)
-    username: Mapped[str] = mapped_column(String(100))
+    public_id: Mapped[str] = mapped_column(
+        String(50), unique=True, nullable=False
+    )
+    username: Mapped[str] = mapped_column(
+        String(100), nullable=False, unique=True
+    )
+    display_name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(70), unique=True)
 
-    is_banned: Mapped[bool] = mapped_column(Boolean)
+    is_banned: Mapped[bool] = mapped_column(Boolean, nullable=False)
     user_type: Mapped[UserType] = mapped_column(Enum(UserType))
 
     # == Preferences ==
@@ -41,6 +45,7 @@ class User(Base):
 
         self.public_id = str(uuid.uuid4())
         self.username = username
+        self.display_name = username
         self.email = email
         self.password = hashed_password
 

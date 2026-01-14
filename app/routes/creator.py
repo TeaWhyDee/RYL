@@ -7,15 +7,15 @@ from apiflask import (
 )
 from apiflask.fields import Integer, List, Nested, String
 from apiflask.validators import Range
-from flask import current_app, json
+from flask import current_app
 from flask.views import MethodView
-from flask_jwt_extended import current_user
-from sqlalchemy_declarative_extensions.audit import set_context_values
 
 from app.db.database import db
 from app.db.models.creator import Creator
+from app.db.services.creator import add_or_get_creator
 from app.schemas.creator import CreatorIn, CreatorOut
 from app.utility.auth import auth
+from app.utility.context import ContextValues
 
 app_creator = APIBlueprint("creator", __name__)
 
@@ -53,10 +53,7 @@ class Creators(MethodView):
     @app_creator.auth_required(auth)
     def post(self, json_data):
         try:
-            new_creator = Creator(name=json_data["name"])
-
-            db.session.add(new_creator)
-            db.session.commit()
+            new_creator = add_or_get_creator(ContextValues(), json_data["name"])
         except Exception as e:
             current_app.logger.warning(e)
             abort(500)

@@ -1,5 +1,5 @@
 from apiflask import Schema
-from apiflask.fields import Integer, String, Enum, Boolean
+from apiflask.fields import Boolean, Enum, Integer, String
 
 # ===
 # Change default response format
@@ -21,9 +21,12 @@ class UserIn(Schema):
 class UserOut(Schema):
     public_id = String()
     username = String()
+    display_name = String()
+    is_banned = Boolean()
     user_type = String()
 
 
+# only passed on login
 class UserLogin(Schema):
     username = String()
     password = String()

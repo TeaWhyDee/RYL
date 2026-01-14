@@ -1,2 +1,11 @@
 __pycache__
+**/__pycache__/**
+__pycache__/
 .env
+instance
+
+.vscode/
+Session.vim
+sample_data/
+scripts/create_test_db.sh
+tests/

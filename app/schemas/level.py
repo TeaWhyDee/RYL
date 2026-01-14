@@ -1,15 +1,26 @@
 from apiflask import Schema
-from apiflask.fields import Boolean, DateTime, Enum, Integer, List, Nested, String
+from apiflask.fields import (
+    Boolean,
+    DateTime,
+    Enum,
+    Integer,
+    Nested,
+    String,
+)
 
 from app.db.models.level import (
+    GDDifficulty,
+    GDLength,
+    GDRating,
+    GDVersion,
     Level,
-    LevelDifficulty,
-    LevelLength,
-    LevelRating,
     LevelType,
 )
-from app.schemas.creator import CreatorOut
-from app.schemas.credit import LevelCreditOut
+from app.schemas.author import AuthorCreatorOutExtra, AuthorTeamOutExtra
+from app.schemas.creator import CreatorOut, TeamOut
+from app.schemas.credit import CreditOut, CreditOutCreatorExtra
+
+# from app.schemas.credit import LevelCreditOut
 
 
 class LevelIn(Schema):
@@ -17,8 +28,8 @@ class LevelIn(Schema):
     name = String()
     GD_publisher = String()
     level_type = Enum(LevelType)
-    length = Enum(LevelLength)
-    rating = Enum(LevelRating)
+    length = Enum(GDLength)
+    rating = Enum(GDRating)
 
 
 class LevelPatch(Schema):
@@ -27,10 +38,10 @@ class LevelPatch(Schema):
     url_name = String()
     date_published = DateTime()
     GD_publisher = String()
-    GD_difficulty = Enum(LevelDifficulty)
+    GD_difficulty = Enum(GDDifficulty)
     level_type = Enum(LevelType)
-    length = Enum(LevelLength)
-    rating = Enum(LevelRating)
+    length = Enum(GDLength)
+    rating = Enum(GDRating)
     is_megacollab = Boolean()
     is_upcoming = Boolean()
 
@@ -41,25 +52,33 @@ class LevelOutMin(Schema):
 
     id = Integer()
     GD_id = Integer()
-    display_name = String()
     url_name = String()
+    display_name = String()
+
+    date_published = DateTime()
     GD_publisher = String()
+    GD_difficulty = Enum(GDDifficulty)
+    GD_version = Enum(GDVersion)
+    GD_length = Enum(GDLength)
+    GD_rating = Enum(GDRating)
+
     level_type = Enum(LevelType)
-    length = Enum(LevelLength)
-    rating = Enum(LevelRating)
-    is_upcoming = Boolean()
     is_megacollab = Boolean()
+    is_upcoming = Boolean()
 
-
-class LevelOut(LevelOutMin):
     url = String()
-    # creator_id = Integer()
 
 
-class LevelOutExtra(LevelOutMin):
+class LevelOut(LevelOutMin):  # output only ids (of credits, creators, teams)
+    author_creators = Nested(CreatorOut, many=True)
+    author_teams = Nested(TeamOut, many=True)
+    credits = Nested(CreditOut, many=True)
+
+
+class LevelOutExtra(LevelOutMin):  # output full schemas (creator, team, credit)
     class Meta:
-        model = Level
         include_relationships = True
 
-    # creator = Nested(CreatorOut)
-    credits = Nested(LevelCreditOut, many=True)
+    author_creators = Nested(AuthorCreatorOutExtra, many=True)
+    author_teams = Nested(AuthorTeamOutExtra, many=True)
+    credits = Nested(CreditOutCreatorExtra, many=True)

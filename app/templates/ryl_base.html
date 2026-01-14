@@ -1,0 +1,80 @@
+<!doctype html>
+<!-- <title>{% block title %}{% endblock %} - Flaskr</title> -->
+<!-- <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> -->
+
+<script>
+const loadToken = async () => {
+    const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)access_token\s*=\s*([^;]*).*$)|^.*$/, "$1");
+    if (accessToken) {
+        headers = {
+            'Authorization': `Bearer ${accessToken}`
+        }
+        const response = await fetch(`/v1/whoami`, {
+            method: 'GET',
+            headers: headers
+        });
+        const user = await response.json();
+
+        const userDiv = document.getElementById('userDiv');
+        userDiv.innerHTML = `Logged in as <strong>${user.username}</strong>`;
+        // const user = {{ fuser }}
+        // userDiv.innerHTML = `Logged in as <strong>${user.username}</strong>`;
+    }
+    else {
+        headers = {}
+    }
+}
+
+loadToken();
+</script>
+
+<nav style="width: 100%">
+  <!-- <h1>Flaskr</h1> -->
+  <!-- <ul> -->
+  <!--   {% if g.user %} -->
+  <!--     <li><span>{{ g.user['username'] }}</span> -->
+  <!--     <li><a href="{{ url_for('auth.logout') }}">Log Out</a> -->
+  <!--   {% else %} -->
+  <!--     <li><a href="{{ url_for('auth.register') }}">Register</a> -->
+  <!--     <li><a href="{{ url_for('auth.login') }}">Log In</a> -->
+  <!--   {% endif %} -->
+  <!-- </ul> -->
+    <a href="/login">login</a> |
+    <a href="/levels">levels</a> |
+    <a href="/layouts">layouts</a> |
+    <a href="/add">add level or creator</a> | 
+    <div id="userDiv" style="display:inline-block;"></div>
+    <br>
+</nav>
+<section class="content">
+  <header>
+    {% block header %}{% endblock %}
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</section>
+
+
+
+
+
+{% macro render_pagination(pagination, endpoint) %}
+<div class="page-items">
+    {{ pagination.first }} - {{ pagination.last }} of {{ pagination.total }}
+</div>
+<div class=pagination>
+    {% for page in pagination.iter_pages() %}
+    {% if page %}
+        {% if page != pagination.page %}
+        <a href="{{ url_for(endpoint, page=page) }}">{{ page }}</a>
+        {% else %}
+        <strong>{{ page }}</strong>
+        {% endif %}
+    {% else %}
+        <span class=ellipsis>…</span>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endmacro %}

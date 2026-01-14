@@ -3,7 +3,8 @@ import os
 # from authlib.integrations.flask_client import OAuth
 from apiflask import APIFlask
 from dotenv import load_dotenv
-from flask import render_template
+from flask import current_app, g, render_template
+from flask_jwt_extended import current_user, get_jwt_identity
 from flask_migrate import Migrate
 from sqlalchemy_declarative_extensions import register_sqlalchemy_events
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -11,12 +12,12 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from app.db.database import Base, db
 from app.db.models.user import User
 from app.routes.auth import app_auth
+from app.routes.author import app_author
 from app.routes.creator import app_creator
 from app.routes.credit import app_credit
 from app.routes.level import app_level
-from app.routes.test import app_test
 from app.routes.utility import app_util
-from app.utility.auth import jwt_manager
+from app.utility.auth import auth, jwt_manager
 
 ryl_domain = "ryl.dev"
 
@@ -89,20 +90,20 @@ def create_app(test_config=None):
                 db.session.commit()
 
     # == ROUTES ==
-    app.register_blueprint(app_test)
     app.register_blueprint(app_auth)
     app.register_blueprint(app_level)
     app.register_blueprint(app_creator)
     app.register_blueprint(app_util)
     app.register_blueprint(app_credit)
+    app.register_blueprint(app_author)
 
     @app.get("/signup")
     def signup_page():
-        return render_template("register.html")
+        return render_template("auth/register.html")
 
     @app.get("/login")
     def login_page():
-        return render_template("login.html")
+        return render_template("auth/login.html")
 
     @app.get("/")
     def index_page():
@@ -114,7 +115,7 @@ def create_app(test_config=None):
 
     @app.get("/levels")
     def levels_page():
-        return render_template("levels.html")
+        return render_template("levels.html", fuser=auth.username)
 
     @app.get("/layouts")
     def layouts_page():

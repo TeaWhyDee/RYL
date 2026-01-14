@@ -1,7 +1,5 @@
-from typing import Optional
-
 from app.db.database import db
-from app.db.models.credit import LevelCreatorRole, LevelCredit
+from app.db.models.credit import LevelCredit, LevelCreditRole
 from app.utility.context import ContextValues
 
 
@@ -9,7 +7,7 @@ def add_or_get_credit(
     context_values: ContextValues,
     level_id: int,
     creator_id: int,
-    creator_role: LevelCreatorRole,
+    creator_role: LevelCreditRole,
 ):
     credit = LevelCredit.query.filter_by(
         creator_id=creator_id, level_id=level_id, creator_role=creator_role
@@ -18,9 +16,9 @@ def add_or_get_credit(
         return credit
 
     new_credit = LevelCredit(
-        level_id=level_id,
-        creator_id=creator_id,
-        creator_role=creator_role,
+        level_id,
+        creator_id,
+        creator_role,
     )
 
     context_values.set()

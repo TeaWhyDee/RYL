@@ -21,12 +21,18 @@ This project ONLY works correctly with Postgres. Why?:
 
 Create DB:
 ```sql
-DROP DATABASE ryl_dev;
-
-CREATE DATABASE ryl_dev;
 CREATE USER ryl_dev WITH PASSWORD 'ryl_dev1';
+CREATE DATABASE ryl_dev;
 GRANT ALL PRIVILEGES ON DATABASE ryl_dev TO ryl_dev;
 ALTER DATABASE ryl_dev OWNER to ryl_dev;
+```
+reset db:
+```bash
+sudo -u postgres bash ./scripts/reset_pg_db.sh
+```
+create test db:
+```bash
+sudo -u postgres bash ./scripts/create_test_db.sh
 ```
 
 Set up migrations (Flask-Migrate)[https://flask-migrate.readthedocs.io/en/latest/]:
@@ -38,7 +44,12 @@ flask db upgrade
 Migrations config: `migrations/alembic.ini`
 
 # Run
-App entry point in `app/__init__.py`
+- Start postgres
+- Activate python env
+- Run flask app (app entry point in `app/__init__.py`)
+```bash
+flask run --debug
+```
 
 
 # Other

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from app.db.database import db
-from app.db.models.level import Level, LevelLength, LevelRating, LevelType
+from app.db.models.level import GDLength, GDRating, Level, LevelType
 from app.utility.context import ContextValues
 
 
@@ -11,8 +11,8 @@ def add_or_get_level(
     level_name: str,
     level_publisher: str,
     level_type: LevelType,
-    level_length: Optional[LevelLength] = None,
-    level_rating: Optional[LevelRating] = None,
+    level_length: Optional[GDLength] = None,
+    level_rating: Optional[GDRating] = None,
 ):
     lvl = Level.query.filter_by(GD_id=level_GD_id).one_or_none()
     if lvl:

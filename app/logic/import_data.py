@@ -4,8 +4,9 @@ from sqlalchemy_declarative_extensions.audit import set_context_values
 
 from app.db.database import db
 from app.db.models.creator import Creator
-from app.db.models.credit import LevelCreatorRole, LevelCredit
-from app.db.models.level import Level, LevelLength, LevelRating, LevelType
+from app.db.models.credit import LevelCredit, LevelCreditRole
+from app.db.models.level import GDLength, GDRating, Level, LevelType
+from app.db.services.author import add_or_get_author_creator
 from app.db.services.creator import add_or_get_creator
 from app.db.services.credit import add_or_get_credit
 from app.db.services.level import add_or_get_level
@@ -37,18 +38,21 @@ def import_demonlist_json():
                 level_name,
                 level_publisher,
                 LevelType.level,
-                LevelLength.long,
-                LevelRating.featured,
+                GDLength.long,
+                GDRating.featured,
             )
 
             creator = add_or_get_creator(context_values, level_publisher)
+            author_creator = add_or_get_author_creator(
+                context_values, level.id, creator.id
+            )
 
             verifier = add_or_get_creator(context_values, level_verifier)
             _ = add_or_get_credit(
-                context_values, level.id, verifier.id, LevelCreatorRole.verifier
+                context_values, level.id, verifier.id, LevelCreditRole.verifier
             )
 
-            return
+            return level
 
 
 def import_aredl_json():
