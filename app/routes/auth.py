@@ -1,14 +1,23 @@
 from apiflask import APIBlueprint, abort
 from flask import current_app, jsonify, make_response, request
-from flask_jwt_extended import create_access_token, current_user, get_jwt_identity
+from flask_jwt_extended import (
+    create_access_token,
+    current_user,
+    get_jwt_identity,
+)
 
 from app import routes
 from app.db.database import db
 from app.db.models.user import User
+from app.db.services.user import try_create_user
 from app.schemas.user import UserIn, UserLogin, UserOut
 from app.utility.auth import auth
+from app.utility.context import ContextValues
 
 app_auth = APIBlueprint("auth", __name__)
+
+# TODO:
+# https://flask-security-too.readthedocs.io/en/stable/installation.html
 
 
 @app_auth.post("/v1/auth/signup")
@@ -27,12 +36,10 @@ def register(json_data):
     if existing_email:
         abort(400, "Email already used")
 
+    # try creating new user
     try:
-        new_user = User(
-            username=username,
-            password=password,
-            email=email,
-        )
+        cxt = ContextValues(user_id=1, note="Registration")
+        new_user = try_create_user(cxt, username, password, email)
 
         db.session.add(new_user)
         db.session.commit()

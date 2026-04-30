@@ -1,16 +1,17 @@
-from apiflask import APIFlask, Schema
-from apiflask.fields import Boolean, Enum, Integer, Nested, String
+from apiflask.fields import Integer, Nested, String
 
-from app.db.models.creator import Creator, GD_Account, Team
+from app.schemas import RYLInSchema, RYLOutSchema
+
+# from app.db.models.creator import Creator, GD_Account, Team
 
 # from app.schemas.level import LevelOut
 
 
-class CreatorIn(Schema):
+class CreatorIn(RYLInSchema):
     name = String()
 
 
-class CreatorOut(Schema):
+class CreatorOut(RYLOutSchema):
     id = Integer()
     display_name = String()
     url_name = String()
@@ -18,7 +19,7 @@ class CreatorOut(Schema):
     clan = String()
 
 
-class CreatorOutExtra(Schema):
+class CreatorOutExtra(RYLOutSchema):
     id = Integer()
     display_name = String()
     url_name = String()

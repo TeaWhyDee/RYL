@@ -1,11 +1,22 @@
+"""
+These schemas are used for CONTENT.
+i.e. models derived from ContentBase.
+Otherwise, use normal Schema.
+"""
 
-# ===
-# Change default response format
-# ===
-# class BaseResponse(Schema):
-#     data = Field()  # the data key
-#     message = String()
-#     code = Integer()
+from apiflask import Schema
+from apiflask.fields import DateTime, Integer, String, Enum
+from apiflask.validators import Length
 
-# app.config['BASE_RESPONSE_SCHEMA'] = BaseResponse
+from app.db.database import CompletenessStatus
 
+
+class RYLOutSchema(Schema):
+    id = Integer()
+    created_at = DateTime()
+    updated_at = DateTime()
+    completeness_status = Enum(enum=CompletenessStatus)
+
+
+class RYLInSchema(Schema):
+    note = String(required=False, validate=Length(1, 500))

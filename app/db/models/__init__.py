@@ -1,3 +1,10 @@
+# ==========
+# DO NOT CALL MODELS DIRECTLY,
+# USE SERVICES INSTEAD
+# ==========
+
+
+# OLD JWT CODE
 # import jwt
 # from datetime import datetime, timedelta
 # from werkzeug.security import generate_password_hash, check_password_hash

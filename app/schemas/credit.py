@@ -1,11 +1,11 @@
-from apiflask import APIFlask, Schema
-from apiflask.fields import Boolean, Enum, Integer, List, Nested, String
+from apiflask.fields import Enum, Integer, Nested
 
 from app.db.models.credit import LevelCreatorRole, LevelCredit
+from app.schemas import RYLInSchema, RYLOutSchema
 from app.schemas.creator import CreatorOut
 
 
-class LevelCreditIn(Schema):
+class LevelCreditIn(RYLInSchema):
     class Meta:
         model = LevelCredit
 
@@ -14,7 +14,7 @@ class LevelCreditIn(Schema):
     creator_role = Enum(LevelCreatorRole)
 
 
-class LevelCreditOut(Schema):
+class LevelCreditOut(RYLOutSchema):
     class Meta:
         model = LevelCredit
 
@@ -23,7 +23,7 @@ class LevelCreditOut(Schema):
     creator_role = Enum(LevelCreatorRole)
 
 
-class LevelCreditOutFull(Schema):
+class LevelCreditOutFull(RYLOutSchema):
     class Meta:
         model = LevelCredit
 

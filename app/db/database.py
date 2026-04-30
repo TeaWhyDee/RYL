@@ -64,22 +64,23 @@ class Base(_Base):
 
 
 class CompletenessStatus(enum.Enum):
-    imported_GD = 0
-    has_creator = 1
+    #
+    bad = 0
+    imported_GD = 1
+    imported_GD_plus = 2
     imported_extra = 3
+    imported_extra_plus = 4
+    #
     user_edited = 5
+    user_edited_plus = 6
+    helper_edited = 7
+    mod_edited = 8
+    approved_awaiting_correction = 9
     mod_approved = 10
 
 
 class ContentBase(Base):
     __abstract__ = True
-
-    # completeness_status: Mapped[CompletenessStatus] = mapped_column(
-    #     Enum(CompletenessStatus, nullable=False, default=CompletenessStatus.imported_GD)
-    # )
-
-    def __init__(self):
-        pass
 
 
 ignore_columns = set(["created_at", "updated_at"])
@@ -87,7 +88,8 @@ context_columns = [
     # User id is set in utility/auth.py
     # User_id should be set to 1 for system operations. Note is optional extra info.
     Column("user_id", String(), nullable=True),
-    Column("note", String(), nullable=True),
+    Column("note", String(500), nullable=True),
+    # TODO: datetime
 ]
 T = TypeVar("T")
 

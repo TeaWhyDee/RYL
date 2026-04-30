@@ -8,19 +8,68 @@ from flask_migrate import Migrate
 from sqlalchemy_declarative_extensions import register_sqlalchemy_events
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from app.db.database import Base, db
-from app.db.models.user import User
+from app.db.database import Base, CompletenessStatus, db
+from app.db.models.team import Team
+from app.db.models.user import User, UserType
 from app.routes.auth import app_auth
 from app.routes.creator import app_creator
 from app.routes.credit import app_credit
 from app.routes.level import app_level
 from app.routes.test import app_test
+from app.routes.team import app_team
 from app.routes.utility import app_util
 from app.utility.auth import jwt_manager
+from app.utility.debug import add_debug_team, add_debug_user
 
 ryl_domain = "ryl.dev"
 
 load_dotenv()
+
+
+def ryl_init_db(app: APIFlask):
+    #
+    # System User
+    #
+    existing_system_user = User.query.filter_by(username="system").first()
+    if existing_system_user:
+        assert existing_system_user.id == 1
+    else:
+        sys_user = User(
+            username="system",
+            password="a8sf7-a8sd7fa089sd7f09a8s7df",
+            email=f"system@{ryl_domain}",
+        )
+        db.session.add(sys_user)
+        db.session.commit()
+
+    #
+    # Defaults
+    #
+    existing_team = Team.query.filter_by(id=1).first()
+    if existing_team:
+        assert existing_team.url_name == "unknown-team"
+    else:
+        unk_team = Team(
+            name="Unknown Team",
+            completeness_status=CompletenessStatus.mod_approved,
+            description="Placeholder team for unknwon/missing teams.",
+        )
+        db.session.add(unk_team)
+        db.session.commit()
+
+    #
+    # DEBUG
+    #
+    if app.config["DEBUG"]:
+        add_debug_user("string", UserType.normal)
+        add_debug_user("user", UserType.normal)
+        add_debug_user("helper", UserType.helper)
+        add_debug_user("mod", UserType.moderator)
+        add_debug_user("admin", UserType.admin)
+
+        add_debug_team("team2")
+        add_debug_team("team3")
+        add_debug_team("team4")
 
 
 def create_app(test_config=None):
@@ -36,7 +85,7 @@ def create_app(test_config=None):
         },
         {
             "name": "Local Server",
-            "url": "http://127.0.0.1:5000/",
+            "url": "http://localhost:5000/",
         },
     ]
 
@@ -65,28 +114,9 @@ def create_app(test_config=None):
 
         db.create_all()
 
-        existing_system_user = User.query.filter_by(username="system").first()
-
-        if not existing_system_user:
-            sys_user = User(
-                username="system",
-                password="a8sf7-a8sd7fa089sd7f09a8s7df",
-                email=f"system@{ryl_domain}",
-            )
-            db.session.add(sys_user)
-            db.session.commit()
-
-        if app.config["DEBUG"]:
-            existing_user = User.query.filter_by(username="string").first()
-
-            if not existing_user:
-                new_user = User(
-                    username="string",
-                    password="string",
-                    email="string",
-                )
-                db.session.add(new_user)
-                db.session.commit()
+        # Create DB entries:
+        # defaults & necessary for operation
+        ryl_init_db(app)
 
     # == ROUTES ==
     app.register_blueprint(app_test)
@@ -95,6 +125,7 @@ def create_app(test_config=None):
     app.register_blueprint(app_creator)
     app.register_blueprint(app_util)
     app.register_blueprint(app_credit)
+    app.register_blueprint(app_team)
 
     @app.get("/signup")
     def signup_page():

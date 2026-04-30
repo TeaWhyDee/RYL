@@ -1,4 +1,10 @@
-from apiflask import APIBlueprint, PaginationSchema, Schema, abort, pagination_builder
+from apiflask import (
+    APIBlueprint,
+    PaginationSchema,
+    Schema,
+    abort,
+    pagination_builder,
+)
 from apiflask.fields import Enum, Integer, List, Nested, String
 from apiflask.validators import Range
 from flask import current_app
@@ -6,6 +12,7 @@ from flask.views import MethodView
 
 from app.db.database import db
 from app.db.models.credit import LevelCredit
+from app.routes import PageSchema
 from app.schemas.credit import LevelCreditIn, LevelCreditOut, LevelCreditOutFull
 
 # from app.schemas.level import LevelIn, LevelOut, LevelOutExtra
@@ -14,11 +21,11 @@ from app.utility.auth import auth
 app_credit = APIBlueprint("credit", __name__)
 
 
-class LevelCreditQuery(Schema):
-    page = Integer(load_default=1)
+class LevelCreditQuery(PageSchema):
+    # page = Integer(load_default=1)
+    # per_page = Integer(load_default=20, validate=Range(min=1, max=100))
     level_id = Integer()
     creator_id = Integer()
-    per_page = Integer(load_default=20, validate=Range(min=1, max=100))
 
 
 class LevelCreditsPage(Schema):
@@ -47,7 +54,10 @@ class LevelCredits(MethodView):
         )
 
         credits = pagination.items
-        return {"credits": credits, "pagination": pagination_builder(pagination)}
+        return {
+            "credits": credits,
+            "pagination": pagination_builder(pagination),
+        }
 
     @app_credit.input(LevelCreditIn, location="json")
     @app_credit.output(LevelCreditOutFull, status_code=201)
@@ -72,7 +82,10 @@ class LevelCredits(MethodView):
 
 
 class LevelCreditView(MethodView):
-    decorators = [app_credit.auth_required(auth), app_credit.doc(responses=[404])]
+    decorators = [
+        app_credit.auth_required(auth),
+        app_credit.doc(responses=[404]),
+    ]
 
     @app_credit.output(LevelCreditOutFull)
     def get(self, credit_id):

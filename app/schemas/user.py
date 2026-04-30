@@ -1,29 +1,24 @@
 from apiflask import Schema
-from apiflask.fields import Integer, String, Enum, Boolean
+from apiflask.fields import String, Boolean
+from apiflask.validators import Length
+from marshmallow.validate import Email
 
-# ===
-# Change default response format
-# ===
-# class BaseResponse(Schema):
-#     data = Field()  # the data key
-#     message = String()
-#     code = Integer()
-
-# app.config['BASE_RESPONSE_SCHEMA'] = BaseResponse
+# from app.schemas import RYLOutSchema
 
 
 class UserIn(Schema):
-    username = String()
-    password = String()
-    email = String()
+    username = String(required=True, validate=Length(3, 20))
+    password = String(required=True, validate=Length(8, 30))
+    email = String(required=True, validate=Email())
 
 
 class UserOut(Schema):
-    public_id = String()
     username = String()
     user_type = String()
+    is_banned = Boolean()
+    is_deleted = Boolean()
 
 
 class UserLogin(Schema):
-    username = String()
-    password = String()
+    username = String(required=True)
+    password = String(required=True)

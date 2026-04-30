@@ -5,25 +5,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base, ContentBase, db, ryl_audit
 from app.db.models.creator import Creator
+from app.db.models.credit import LevelCreatorRole
 from app.db.models.level import Level
 
 
-class LevelCreatorRole(enum.Enum):
-    host = "host"
-    collaborator = "collaborator"  # generic collaborator
-    gameplay = "gameplay"
-    decoration = "decoration"
-    fx = "fx"
-    art = "art"
-    # background = "background"
-    structuring = "structuring"
-    engineer = "engineer"  # tools, splicing
-    playtester = "playtester"
-    verifier = "verifier"
-
-
 @ryl_audit()
-class LevelCredit(ContentBase):
+class LevelAuthor(ContentBase):
     # Collaborators of a level.
     # Additional creator credit for a level.
     __tablename__ = "level_credits"
@@ -32,9 +19,7 @@ class LevelCredit(ContentBase):
     creator_id: Mapped[int] = mapped_column(
         "creator_id", ForeignKey(Creator.id)
     )
-    creator_role: Mapped[LevelCreatorRole] = mapped_column(
-        Enum(LevelCreatorRole)
-    )
+    team_id: Mapped[int] = mapped_column("creator_id", ForeignKey(Creator.id))
 
     level = relationship("Level", back_populates="credits")
     creator = relationship("Creator", back_populates="credits")

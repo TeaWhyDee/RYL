@@ -13,7 +13,8 @@ function run_sql_query() {
     PGPASSWORD="$PASSWORD" psql -h $HOST -p $PORT -U $USER -c "$query"
 }
 
-psql -c "DROP DATABASE ryl_dev;"
-psql -c "CREATE DATABASE ryl_dev;"
-psql -c "GRANT ALL PRIVILEGES ON DATABASE ryl_dev TO ryl_dev;"
-psql -c "ALTER DATABASE ryl_dev OWNER to ryl_dev;"
+
+psql -c "DROP DATABASE ryl_test;"
+psql -c "CREATE DATABASE ryl_test;"                             
+psql -c "GRANT ALL PRIVILEGES ON DATABASE ryl_test TO ryl_dev;" 
+psql -c "ALTER DATABASE ryl_test OWNER to ryl_dev;"             

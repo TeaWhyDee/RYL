@@ -1,4 +1,10 @@
-from apiflask import APIBlueprint, PaginationSchema, Schema, abort, pagination_builder
+from apiflask import (
+    APIBlueprint,
+    PaginationSchema,
+    Schema,
+    abort,
+    pagination_builder,
+)
 from apiflask.fields import Enum, Integer, List, Nested, String
 from apiflask.validators import Range
 from flask import current_app
@@ -7,6 +13,7 @@ from sqlalchemy.exc import NoResultFound
 
 from app.db.database import db
 from app.db.models.level import Level, LevelType
+from app.db.models.level_upload import LevelUpload
 from app.schemas.level import LevelIn, LevelOut, LevelOutExtra, LevelPatch
 from app.utility.auth import auth
 
@@ -63,7 +70,7 @@ class Levels(MethodView):
             new_level = Level(
                 GD_id=json_data["GD_id"],
                 name=json_data["name"],
-                GD_publisher=json_data["GD_publisher"],
+                # GD_publisher=json_data["GD_publisher"],
                 # creator_id=json_data["creator_id"],
                 level_type=json_data["level_type"],
                 level_length=json_data["length"],

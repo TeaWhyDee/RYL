@@ -2,7 +2,7 @@ import json
 
 from sqlalchemy_declarative_extensions.audit import set_context_values
 
-from app.db.database import db
+from app.db.database import CompletenessStatus, db
 from app.db.models.creator import Creator
 from app.db.models.credit import LevelCreatorRole, LevelCredit
 from app.db.models.level import Level, LevelLength, LevelRating, LevelType
@@ -13,7 +13,7 @@ from app.utility.context import ContextValues
 
 
 def import_demonlist_json():
-    context_values = ContextValues(note="demonlist")
+    context_values = ContextValues(user_id=1, note="demonlist")
 
     with open("sample_data/demonlist_listed_all.json") as file:
         data = json.load(file)
@@ -32,13 +32,14 @@ def import_demonlist_json():
                 continue
 
             level = add_or_get_level(
-                context_values,
-                level_id,
-                level_name,
-                level_publisher,
-                LevelType.level,
-                LevelLength.long,
-                LevelRating.featured,
+                context_values=context_values,
+                level_GD_id=level_id,
+                level_name=level_name,
+                level_type=LevelType.level,
+                # level_publisher=level_publisher,
+                # LevelLength=LevelLength.long,
+                # LevelRating=LevelRating.featured,
+                completeness_status=CompletenessStatus.imported_extra,
             )
 
             creator = add_or_get_creator(context_values, level_publisher)
@@ -48,7 +49,7 @@ def import_demonlist_json():
                 context_values, level.id, verifier.id, LevelCreatorRole.verifier
             )
 
-            return
+            return level
 
 
 def import_aredl_json():

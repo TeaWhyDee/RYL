@@ -43,8 +43,20 @@ flask db upgrade
 ```
 Migrations config: `migrations/alembic.ini`
 
+## Tests
+Create postgres database `ryl_test` with owner `ryl_dev` (see `./scripts/reset_test_db.sh`)
+
+To run tests:
+```bash
+pytest tests
+```
+
+DB created in conftest.py
+In case of errors run `./scripts/reset_test_db.sh`
+
 # Run
-App entry point in `app/__init__.py`
+Start postgres.
+Run `python -m flask run --debug` (app entry point in `app/__init__.py`)
 
 
 # Other
@@ -60,8 +72,6 @@ flask db upgrade
 ```
 
 flask db --help
-
-
 
 
 
