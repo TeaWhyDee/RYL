@@ -27,6 +27,13 @@ from sqlalchemy_declarative_extensions.audit import (
 
 _Base = declarative_base()
 
+audit_md = MetaData(
+    naming_convention={
+        "fk": "audit_%(table_name)s_id",
+        "pk": "%(table_name)s_pk",
+    }
+)
+
 
 # https://sqlalchemy-declarative-extensions.readthedocs.io/en/stable/audit_tables.html
 @declarative_database

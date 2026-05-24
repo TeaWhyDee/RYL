@@ -15,11 +15,11 @@ from app.db.database import CompletenessStatus, db
 from app.db.models.team import Team
 from app.db.services.team import try_add_team
 from app.routes import PageSchema
-from app.schemas import RYLInSchema
+from app.schemas import RYLContentIn
 from app.schemas.team import TeamIn, TeamOut, TeamOutMin, TeamPatch
-
-from app.utility.auth import auth
+from app.utility.auth import ryl_auth
 from app.utility.context import ContextValues
+from app.utility.crud_auth import CRUD_AUTH_ROLES
 from app.utility.database import check_model_difference
 from app.utility.error import RYLUpdateNoChange
 from app.utility.exceptions import RYLAlreadyExists
@@ -32,7 +32,7 @@ class TeamsQuery(PageSchema):
 
 
 class TeamsPage(Schema):
-    teams = List(Nested(TeamOutMin))
+    teams = List(Nested(TeamOut))
     pagination = Nested(PaginationSchema)
 
 
@@ -48,8 +48,8 @@ class TeamsView(MethodView):
         team_query = Team.query
 
         # TODO: better search?
-        if "search_str" in query_data:
-            search_str = query_data["search_str"]
+        search_str = query_data.get("search_str")
+        if search_str:
             team_query = team_query.filter(
                 Team.display_name.ilike(f"%{search_str}%")  # type: ignore[reportAttributeAccessIssue]
             )
@@ -61,7 +61,7 @@ class TeamsView(MethodView):
         teams = pagination.items
         return {"teams": teams, "pagination": pagination_builder(pagination)}
 
-    @app_team.auth_required(auth)
+    @app_team.auth_required(ryl_auth, roles=CRUD_AUTH_ROLES["team"].create)
     @app_team.input(TeamIn, location="json")
     @app_team.output(TeamOutMin, status_code=201)
     @app_team.doc("Add a team", responses=[409, 500])
@@ -72,14 +72,14 @@ class TeamsView(MethodView):
         current_app.logger.info(f"Request: Add team: {json_data}")
         try:
             ctx = ContextValues(
-                user_id=current_user.id, note=json_data.pop("note")
+                user_id=current_user.id, note=json_data.pop("note", "")
             )
 
             new_team = try_add_team(
                 ctx,
                 name=json_data["name"],
                 completeness_status=CompletenessStatus.user_edited,
-                description=json_data["description"],
+                description=json_data.get("description", "No description."),
             )
 
             return new_team
@@ -104,7 +104,7 @@ class TeamView(MethodView):
 
         return team
 
-    @app_team.auth_required(auth)
+    @app_team.auth_required(ryl_auth, roles=CRUD_AUTH_ROLES["team"].update)
     @app_team.input(TeamPatch(partial=True))
     @app_team.output(TeamOutMin, status_code=200)
     @app_team.doc("Update a team", responses=[403, 404, 500])
@@ -112,9 +112,7 @@ class TeamView(MethodView):
         """
         Update a team with JSON data.
         """
-        current_app.logger.info(
-            f"Request: Patch team id {team_id}: {json_data}"
-        )
+        current_app.logger.info(f"Request: Patch team({team_id}): {json_data}")
 
         if team_id == 1:  # disallow updating default team
             abort(403, "You can't update this team")
@@ -129,7 +127,7 @@ class TeamView(MethodView):
 
         try:
             ctx = ContextValues(
-                user_id=current_user.id, note=json_data.pop("note")
+                user_id=current_user.id, note=json_data.pop("note", "")
             )
             ctx.set()
 
@@ -141,26 +139,32 @@ class TeamView(MethodView):
 
         return team
 
-    @app_team.auth_required(auth)
-    @app_team.input(RYLInSchema(partial=True))
+    @app_team.auth_required(ryl_auth, roles=CRUD_AUTH_ROLES["team"].delete)
+    @app_team.input(RYLContentIn(partial=True))
     @app_team.output({}, status_code=204)
-    @app_team.doc("Delete a team", responses=[204, 401, 403, 404])
+    @app_team.doc("Delete a team (with note)", responses=[204, 401, 403, 404])
     def delete(self, team_id, json_data):
         current_app.logger.info(f"Request: Delete team: {team_id}")
+
+        if team_id == 1:  # disallow deleting default team
+            abort(403, "You can't delete this team")
 
         team = Team.query.filter_by(id=team_id).one_or_none()
 
         if not team:
             abort(404)
 
-        if team_id == 1:  # disallow deleting default team
-            abort(403, "You can't delete this team")
+        try:
+            ctx = ContextValues(
+                user_id=current_user.id, note=json_data.pop("note", "")
+            )
+            ctx.set()
 
-        ctx = ContextValues(user_id=current_user.id, note=json_data.pop("note"))
-        ctx.set()
-
-        db.session.delete(team)
-        db.session.commit()
+            db.session.delete(team)
+            db.session.commit()
+        except Exception as e:
+            current_app.logger.error(f"{type(e).__name__}: {e}")
+            abort(500)
 
 
 app_team.add_url_rule("/v1/teams", view_func=TeamsView.as_view("teams"))

@@ -10,7 +10,7 @@ from app.db.database import Base, db
 from app.utility.util import sanitize_for_url
 
 
-class UserType(enum.Enum):
+class UserRole(enum.Enum):
     normal = 2
     helper = 5
     moderator = 7
@@ -29,15 +29,18 @@ class User(Base):
 
     is_banned: Mapped[bool] = mapped_column(Boolean)
     is_deleted: Mapped[bool] = mapped_column(Boolean)
-    user_type: Mapped[UserType] = mapped_column(Enum(UserType))
+    user_role: Mapped[UserRole] = mapped_column(Enum(UserRole))
 
     # == Preferences ==
     # preferences = relationship(
     #     "UserPreferences", back_populates="user", uselist=False
     # )
 
-    def user_type_change(self, new_type: UserType):
-        self.user_type = new_type
+    def user_role_change(self, new_type: UserRole):
+        self.user_role = new_type
+
+    def get_roles(self):
+        return [self.user_role.name]
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
@@ -47,7 +50,7 @@ class User(Base):
         username: str,
         password: str,
         email: str,
-        user_type: UserType = UserType.normal,
+        user_role: UserRole = UserRole.normal,
     ):
         """
         Use services/try_create_user for user creation instead.
@@ -64,7 +67,7 @@ class User(Base):
 
         self.is_banned = False
         self.is_deleted = False
-        self.user_type = user_type
+        self.user_role = user_role
 
     def __repr__(self):
         return f"<User {self.id}:{self.username!r}>"

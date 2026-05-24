@@ -10,6 +10,8 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 JWT_VERIFY_SUB = False
 JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=10)  # Token lifetime
 
+YT_API_KEY = "AIzaSyCPJLPa9G0XE9BJekZJCbqZJgRJCtf3wNI"
+
 # SWAGGER = {
 #     'title': 'My API',
 #     'uiversion': 3

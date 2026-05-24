@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from app.db.models.user import User, UserType
+from app.db.models.user import User, UserRole
 from app.db.services.user import try_create_user
 from app.utility.context import ContextValues
 from app.utility.exceptions import RYLBadPassword, RYLBadUsername
@@ -20,7 +20,7 @@ def test_user_creation(session):
     assert user.email == "test@test.com"
     assert user.is_banned is False
     assert user.is_deleted is False
-    assert user.user_type == UserType.normal
+    assert user.user_role == UserRole.normal
 
     assert "yep__" in repr(user)
 
@@ -52,12 +52,12 @@ def test_check_password():
     assert not user.check_password("wrong")
 
 
-def test_user_type_change(session):
+def test_user_role_change(session):
     user = User(username="bob", password="pw", email="d@example.com")
-    user.user_type_change(UserType.admin)
+    user.user_role_change(UserRole.admin)
 
     session.add(user)
     session.commit()
     session.refresh(user)
 
-    assert user.user_type == UserType.admin
+    assert user.user_role == UserRole.admin

@@ -2,7 +2,7 @@ from apiflask.validators import Validator
 from flask_jwt_extended import current_user
 from marshmallow import ValidationError
 
-from app.db.models.user import UserType
+from app.db.models.user import UserRole
 
 
 class Authorized(Validator):
@@ -16,7 +16,7 @@ class Authorized(Validator):
 
     def __init__(
         self,
-        auth_level: UserType,
+        auth_level: UserRole,
         *,
         error: str | None = None,
     ):
@@ -34,7 +34,7 @@ class Authorized(Validator):
     def __call__(self, value: str) -> str:
         message = self._format_error(value)
 
-        if current_user.user_type.value < self.auth_level.value:
+        if current_user.user_role.value < self.auth_level.value:
             raise ValidationError(message)
 
         return value

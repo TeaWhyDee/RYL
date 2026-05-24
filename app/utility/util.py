@@ -1,5 +1,7 @@
 import re
 
+from app.db.database import Base
+
 """
 String sanitization and such.
 """
@@ -15,7 +17,24 @@ def is_valid_string(s):
     return bool(re.match(URI_MATCH_STRICT, s))
 
 
-def sanitize_for_url(string: str):
+def get_url_name(display_name: str, query) -> str:
+    """
+    based on display_name string and query for the model,
+    returns a unique url_name.
+    """
+    sanitized = sanitize_for_url(display_name)
+    url_name = sanitized
+
+    # if already exists, add suffix
+    offset = 2
+    while query.filter_by(url_name=url_name).one_or_none():
+        url_name = f"{sanitized}-{offset}"
+        offset += 1
+
+    return url_name
+
+
+def sanitize_for_url(string: str) -> str:
     """
     Lowers all characters
     Repalces ' ' (space) with '-'
@@ -27,7 +46,7 @@ def sanitize_for_url(string: str):
     return sanitized
 
 
-def string_sanity_check(string: str):
+def string_sanity_check(string: str) -> bool:
     """
     Meant for user content.
     Filter out inappropriate strings.
@@ -41,7 +60,7 @@ def string_sanity_check(string: str):
     return True
 
 
-def password_sanity_check(pwd: str):
+def password_sanity_check(pwd: str) -> bool:
     """
     Filter out bad password.
     Returns False if password is weak.

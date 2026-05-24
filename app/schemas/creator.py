@@ -1,29 +1,49 @@
 from apiflask.fields import Integer, Nested, String
+from apiflask.validators import Length
+from marshmallow.validate import And
 
-from app.schemas import RYLInSchema, RYLOutSchema
-
-# from app.db.models.creator import Creator, GD_Account, Team
-
-# from app.schemas.level import LevelOut
-
-
-class CreatorIn(RYLInSchema):
-    name = String()
+from app.db.models.user import UserRole
+from app.schemas import RYLContentIn, RYLContentOut
+from app.utility.validators import Authorized
 
 
-class CreatorOut(RYLOutSchema):
-    id = Integer()
+#
+# In
+#
+class CreatorIn(RYLContentIn):
+    display_name = String(required=True, validate=Length(1, 50))
+    description = String(required=False, validate=Length(1, 5000))
+
+
+#
+# Patch
+#
+class CreatorPatch(RYLContentIn):
+    display_name = String(
+        validate=And(Length(1, 50), Authorized(UserRole.moderator))
+    )
+    url_name = String(
+        validate=And(Length(1, 60), Authorized(UserRole.moderator))
+    )
+    description = String(
+        validate=And(Length(1, 5000), Authorized(auth_level=UserRole.helper))
+    )
+
+
+#
+# Out
+#
+class _CreatorOutMin(RYLContentOut):
     display_name = String()
     url_name = String()
-    about = String()
-    clan = String()
+    description = String()
 
 
-class CreatorOutExtra(RYLOutSchema):
-    id = Integer()
-    display_name = String()
-    url_name = String()
-    about = String()
-    clan = String()
-    # Level schema passed as string to avoid circular importing
-    levels = Nested("LevelOut", many=True)
+class CreatorOut(_CreatorOutMin):
+    pass
+
+
+class CreatorOutExtra(_CreatorOutMin):
+    team_memberships = Nested("TeamMemberOut", many=True)
+    credits = Nested("LevelCreditOut", many=True)
+    # TODO

@@ -4,8 +4,8 @@ from typing import Optional
 
 from sqlalchemy import (
     Boolean,
-    DateTime,
     Date,
+    DateTime,
     Enum,
     ForeignKey,
     Integer,
@@ -23,7 +23,7 @@ class LevelLength(enum.Enum):
     tiny = "tiny"
     short = "short"
     medium = "medium"
-    long = "L"
+    long = "long"
     XL = "XL"  # 2+ minutes
     XXL = "XXL"  # 5+ minutes  (travel)
     XXXL = "absurd"  # 15+ minutes
@@ -32,7 +32,7 @@ class LevelLength(enum.Enum):
 class LevelType(enum.Enum):
     level = "level"
     layout = "layout"
-    challenge = "challenge"
+    # challenge = "challenge"
     minigame = "minigame"
     platformer = "platformer"
 
@@ -64,6 +64,7 @@ class LevelDifficulty(enum.Enum):
 
 
 class GDVersion(enum.Enum):
+    ver_unk = 0
     ver10 = 100
     ver11 = 110  # mirror
     ver12 = 120  # ball
@@ -94,15 +95,19 @@ class Level(ContentBase):
     GD_id: Mapped[int | None] = mapped_column(
         Integer, nullable=True, unique=True
     )
-    url_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    url_name: Mapped[str] = mapped_column(
+        String(50), nullable=False, unique=True
+    )
     display_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    description = mapped_column(String(5000))
+
     level_type: Mapped[LevelType | None] = mapped_column(
         Enum(LevelType), nullable=False
     )
 
     # nullable
-    date_showcased: Mapped[Date | None] = mapped_column(Date, nullable=True)
-    date_published: Mapped[Date | None] = mapped_column(Date, nullable=True)
+    date_showcased: Mapped[date | None] = mapped_column(Date, nullable=True)
+    date_published: Mapped[date | None] = mapped_column(Date, nullable=True)
     length: Mapped[LevelLength | None] = mapped_column(
         Enum(LevelLength), nullable=True
     )
@@ -118,7 +123,11 @@ class Level(ContentBase):
         Enum(GDVersion), nullable=True
     )
 
+    is_two_player: Mapped[bool] = mapped_column(Boolean, nullable=False)
+
     # == website info ==
+    video_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    thumbnail_url: Mapped[str | None] = mapped_column(String, nullable=True)
     average_rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     is_megacollab: Mapped[bool] = mapped_column(Boolean)
@@ -142,7 +151,9 @@ class Level(ContentBase):
     )
 
     credits = relationship("LevelCredit", back_populates="level")
-    level_uploads = relationship("LevelUpload", back_populates="level")
+    authorships = relationship("LevelAuthorship", back_populates="level")
+    uploads = relationship("LevelUpload", back_populates="level")
+    genres = relationship("LevelGenre", back_populates="level")
     song = relationship("Song", back_populates="levels")
 
     @hybrid_property
@@ -152,20 +163,29 @@ class Level(ContentBase):
     def __init__(
         self,
         GD_id: int,
-        name: str,
+        url_name: str,
+        display_name: str,
         completeness_status: CompletenessStatus,
         level_type: Optional[LevelType] = None,
         level_length: Optional[LevelLength] = None,
         level_length_seconds: Optional[int] = None,
         level_rating: Optional[LevelRating] = None,
-        date_showcased: Optional[Date] = None,
-        date_published: Optional[Date] = None,
+        date_showcased: Optional[date] = None,
+        date_published: Optional[date] = None,
+        description: Optional[str] = None,
+        gd_version: Optional[GDVersion] = None,
+        gd_difficulty: Optional[LevelDifficulty] = None,
+        is_two_player: bool = False,
+        #
+        video_url: Optional[str] = None,
+        thumbnail_url: Optional[str] = None,
     ):
         self.completeness_status = completeness_status
 
         self.GD_id = GD_id
-        self.url_name = sanitize_for_url(name)
-        self.display_name = name
+        self.url_name = url_name
+        self.display_name = display_name
+        self.description = description
 
         self.level_type = level_type
         self.date_showcased = date_showcased
@@ -174,11 +194,15 @@ class Level(ContentBase):
         self.length_seconds = level_length_seconds
 
         self.GD_rating = level_rating
-        self.GD_difficulty = None
-        self.GD_version = GDVersion.ver22
+        self.GD_difficulty = gd_difficulty
+        self.GD_version = gd_version or GDVersion.ver_unk
+        self.is_two_player = is_two_player
         self.average_rating = None
         # self.GD_publisher_id = GD_publisher_id
         # self.creator_id = creator_id
 
         self.is_upcoming = False
         self.is_megacollab = False
+        #
+        self.video_url = video_url
+        self.thumbnail_url = thumbnail_url

@@ -1,41 +1,45 @@
 from apiflask.fields import String
 from apiflask.validators import Length
 from marshmallow.validate import And
-from app.db.models.user import UserType
-from app.schemas import RYLInSchema, RYLOutSchema
+
+from app.db.models.user import UserRole
+from app.schemas import RYLContentIn, RYLContentOut
 from app.utility.validators import Authorized
 
 
-class TeamIn(RYLInSchema):
+# In
+#
+class TeamIn(RYLContentIn):
     name = String(
-        required=True, validate=And(Length(1, 50), Authorized(UserType.helper))
+        required=True, validate=And(Length(1, 50), Authorized(UserRole.helper))
     )
     description = String(
         required=False,
-        validate=And(Length(1, 5000), Authorized(UserType.helper)),
+        validate=And(Length(1, 5000), Authorized(UserRole.helper)),
     )
 
 
-class TeamPatch(RYLInSchema):
+class TeamPatch(RYLContentIn):
     display_name = String(
-        validate=And(Length(1, 50), Authorized(UserType.helper))
+        validate=And(Length(1, 50), Authorized(UserRole.helper))
     )
     url_name = String(
-        validate=And(Length(1, 60), Authorized(UserType.moderator))
+        validate=And(Length(1, 60), Authorized(UserRole.moderator))
     )
     description = String(
-        validate=And(Length(1, 5000), Authorized(auth_level=UserType.helper))
+        validate=And(Length(1, 5000), Authorized(auth_level=UserRole.helper))
     )
 
 
-# out
-class TeamOutMin(RYLOutSchema):
+# Out
+#
+class TeamOutMin(RYLContentOut):
     display_name = String()
     url_name = String()
     description = String()
 
 
-class TeamOut(RYLOutSchema):
+class TeamOut(RYLContentOut):
     display_name = String()
     url_name = String()
     description = String()

@@ -8,7 +8,7 @@ from app.db.database import ContentBase, db, ryl_audit
 class Song(ContentBase):
     __tablename__ = "songs"
 
-    NG_ID: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    ngid: Mapped[int | None] = mapped_column(Integer, nullable=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
     artist: Mapped[str] = mapped_column(String, nullable=False)
 
@@ -19,7 +19,7 @@ class Song(ContentBase):
     levels = relationship("Level", back_populates="song")
 
     def __init__(self, title: str, artist: str):
-        self.NG_ID = None
+        self.ngid = None
         self.title = title
         self.artist = artist
 

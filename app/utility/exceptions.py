@@ -20,3 +20,11 @@ class RYLBadPassword(RYLException):
 
 class RYLAlreadyExists(RYLException):
     pass
+
+
+class RYLNotFound(RYLException):
+    pass
+
+
+class RYLInternalError(RYLException):
+    pass

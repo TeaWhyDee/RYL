@@ -1,7 +1,7 @@
 from typing import Optional
 
 from app.db.database import db
-from app.db.models.user import User, UserType
+from app.db.models.user import User, UserRole
 from app.utility.context import ContextValues
 from app.utility.exceptions import RYLBadPassword, RYLBadUsername
 from app.utility.util import (
@@ -11,6 +11,12 @@ from app.utility.util import (
 )
 
 
+def get_user(id: int):
+    user = User.query.filter_by(id=id).one_or_none()
+
+    return user
+
+
 def add_or_get_user(
     ctx: ContextValues,
     id: int,
@@ -18,7 +24,7 @@ def add_or_get_user(
     password: Optional[str],
     email: Optional[str],
 ):
-    user = User.query.filter_by(public_id=id).one_or_none()
+    user = User.query.filter_by(id=id).one_or_none()
     if user:
         return user
 

@@ -1,9 +1,9 @@
 from apiflask.fields import Integer, String
 
-from app.schemas import RYLOutSchema
+from app.schemas import RYLOut
 
 
-class SongOut(RYLOutSchema):
+class SongOut(RYLOut):
     id = Integer()
     display_name = String()
     url_name = String()

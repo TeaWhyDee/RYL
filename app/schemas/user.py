@@ -14,7 +14,7 @@ class UserIn(Schema):
 
 class UserOut(Schema):
     username = String()
-    user_type = String()
+    user_role = String()
     is_banned = Boolean()
     is_deleted = Boolean()
 

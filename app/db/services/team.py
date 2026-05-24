@@ -1,25 +1,17 @@
 from typing import Optional
+
 from app import db
 from app.db.database import CompletenessStatus
 from app.db.models.team import Team
 from app.utility.context import ContextValues
 from app.utility.exceptions import RYLAlreadyExists
+from app.utility.util import sanitize_for_url
 
 
-# def add_or_get_team(
-#     context_values: ContextValues, name: str, description: Optional[str] = None
-# ):
-#     team = Team.query.filter_by(display_name=name).one_or_none()
-#     if team:
-#         return team
-#
-#     new_team = Team(name=name, description=description)
-#
-#     context_values.set()
-#     db.session.add(new_team)
-#     db.session.commit()
-#
-#     return new_team
+def get_team(id: int):
+    team = Team.query.filter_by(id=id).one_or_none()
+
+    return team
 
 
 def try_add_team(
@@ -30,12 +22,17 @@ def try_add_team(
 ):
     team = Team.query.filter_by(display_name=name).one_or_none()
     if team:
-        raise RYLAlreadyExists("Team already exists")
+        raise RYLAlreadyExists(
+            f"Team with name {name} already exists: id {team.id}"
+        )
+
+    url_name = sanitize_for_url(name)
 
     new_team = Team(
-        name=name,
+        url_name=url_name,
+        display_name=name,
         completeness_status=completeness_status,
-        description=description,
+        description=description if description else "...",
     )
 
     ctx.set()

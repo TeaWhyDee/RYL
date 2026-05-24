@@ -7,7 +7,7 @@ from app.db.database import db
 from app.db.models.gd_server import GDServer
 from app.db.models.level import GDVersion
 from app.db.models.level_upload import LevelUpload
-from app.utility.auth import auth
+from app.utility.auth import ryl_auth
 
 app_test = APIBlueprint("test", __name__)
 

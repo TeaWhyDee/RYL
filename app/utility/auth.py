@@ -1,3 +1,6 @@
+import enum
+from typing import List
+
 from apiflask import HTTPTokenAuth
 from flask import current_app
 from flask_jwt_extended import (
@@ -9,15 +12,22 @@ from flask_jwt_extended import (
 from sqlalchemy_declarative_extensions.audit import set_context_values
 
 from app.db.database import db
-from app.db.models.user import User
+from app.db.models.user import User, UserRole
+from app.db.services.user import get_user
 
 #
 # == APIFlask Auth ==
 #
-auth = HTTPTokenAuth()
+ryl_auth = HTTPTokenAuth()
 
 
-@auth.verify_token
+@ryl_auth.get_user_roles
+def get_user_roles(user_id: int):
+    user = get_user(user_id)
+    return user.get_roles()
+
+
+@ryl_auth.verify_token
 def verify_token(token):
     # This call to flask-jwt-extended:
     # - sets necessary variables

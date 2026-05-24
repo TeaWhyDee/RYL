@@ -1,11 +1,31 @@
 from apiflask.fields import Enum, Integer, Nested
+from marshmallow.validate import And
 
 from app.db.models.credit import LevelCreatorRole, LevelCredit
-from app.schemas import RYLInSchema, RYLOutSchema
+from app.db.models.user import UserRole
+from app.schemas import RYLContentIn, RYLOut
 from app.schemas.creator import CreatorOut
+from app.utility.validators import Authorized
 
 
-class LevelCreditIn(RYLInSchema):
+class LevelCreditIn(RYLContentIn):
+    class Meta:
+        model = LevelCredit
+
+    level_id = Integer(required=True)
+    creator_id = Integer(required=True)
+    creator_role = Enum(LevelCreatorRole, required=True)
+
+
+class LevelCreditPatch(RYLContentIn):
+    creator_role = Enum(
+        LevelCreatorRole,
+        required=False,
+        validate=Authorized(UserRole.helper),
+    )
+
+
+class LevelCreditOut(RYLOut):
     class Meta:
         model = LevelCredit
 
@@ -14,20 +34,11 @@ class LevelCreditIn(RYLInSchema):
     creator_role = Enum(LevelCreatorRole)
 
 
-class LevelCreditOut(RYLOutSchema):
+class LevelCreditOutExtra(RYLOut):
     class Meta:
         model = LevelCredit
 
-    id = Integer()
+    level_id = Integer()
+    creator_id = Integer()
+    creator_role = Enum(LevelCreatorRole)
     creator = Nested(CreatorOut)
-    creator_role = Enum(LevelCreatorRole)
-
-
-class LevelCreditOutFull(RYLOutSchema):
-    class Meta:
-        model = LevelCredit
-
-    id = Integer()
-    level_id = Integer()
-    creator_id = Integer()
-    creator_role = Enum(LevelCreatorRole)

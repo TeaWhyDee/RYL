@@ -1,19 +1,17 @@
-import enum
-from typing import Optional
-
-from sqlalchemy import Boolean, Enum, ForeignKey, Integer, Sequence, String
+from sqlalchemy import Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.database import Base, CompletenessStatus, ContentBase, db, ryl_audit
-from app.db.models.creator import Creator
-from app.db.models.level import Level
+from app.db.database import CompletenessStatus, ContentBase, ryl_audit
 from app.utility.util import sanitize_for_url
 
 
 @ryl_audit()
 class Team(ContentBase):
-    # GD Team like Cherry team
-    # Can have associated GD accounts
+    """
+    GD Team like Cherry team.
+    Can have associated GD accounts.
+    """
+
     __tablename__ = "teams"
 
     url_name = mapped_column(String(60), unique=True)
@@ -32,14 +30,17 @@ class Team(ContentBase):
         default=CompletenessStatus.imported_GD,
     )
 
+    team_memberships = relationship("TeamMember", back_populates="team")
+
     def __init__(
         self,
-        name: str,
+        url_name: str,
+        display_name: str,
         completeness_status: CompletenessStatus,
-        description: Optional[str],
+        description: str,
     ):
-        self.url_name = sanitize_for_url(name)
-        self.display_name = name
+        self.url_name = url_name
+        self.display_name = display_name
         self.description = description
         self.completeness_status = completeness_status
 

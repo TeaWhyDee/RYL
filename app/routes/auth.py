@@ -11,7 +11,7 @@ from app.db.database import db
 from app.db.models.user import User
 from app.db.services.user import try_create_user
 from app.schemas.user import UserIn, UserLogin, UserOut
-from app.utility.auth import auth
+from app.utility.auth import ryl_auth
 from app.utility.context import ContextValues
 
 app_auth = APIBlueprint("auth", __name__)
@@ -56,6 +56,8 @@ def login(json_data):
     # response = make_response({"jwt_token": token})
     # response.set_cookie("jwt_token", token, httponly=True, path="/")
 
+    current_app.logger.warning(json_data)
+
     username = json_data.get("username")
     password = json_data.get("password")
 
@@ -70,7 +72,7 @@ def login(json_data):
 
 @app_auth.get("/v1/whoami/")
 @app_auth.output(UserOut)
-@app_auth.auth_required(auth)
+@app_auth.auth_required(ryl_auth)
 @app_auth.doc(
     responses={
         200: {
